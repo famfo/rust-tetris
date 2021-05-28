@@ -77,7 +77,7 @@ pub fn manage_highscore(pscore: u32)
     {
         println!("Your score: {}", pscore);
         let name = ask_username();
-        scores.push(Score{name: name, score: pscore});
+        scores.push(Score{name, score: pscore});
         scores.sort();
         scores.reverse();
         scores.truncate(10);

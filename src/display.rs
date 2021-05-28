@@ -4,13 +4,13 @@ use std::io::Write;
 use std::cell::RefCell;
 
 
-const ESC: &'static str = "\x1b";
+const ESC: &str = "\x1b";
 
 #[derive(Debug)]
 struct Pixel {
     c: char,
-    fg_color: Color,
-    bg_color: Color,
+    foreground_color: Color,
+    background_color: Color,
 }
 
 pub struct Display {
@@ -24,7 +24,7 @@ impl Display {
         for _ in 0..height {
             let mut row = Vec::with_capacity(width as usize);
             for _ in 0..width {
-                row.push(Pixel{ c: ' ', fg_color: Color::Black, bg_color: Color::Black });
+                row.push(Pixel{ c: ' ', foreground_color: Color::Black, background_color: Color::Black });
             }
             rows.push(row);
         }
@@ -48,20 +48,20 @@ impl Display {
 
         self.set_cursor_pos(left, 0);
 
-        let mut fg_color = Color::Black;
-        let mut bg_color = Color::Black;
+        let mut foreground_color = Color::Black;
+        let mut background_color = Color::Black;
 
         let mut y = 0;
 
         for row in &self.buffer {
             for pixel in row {
-                if pixel.fg_color != fg_color {
-                    fg_color = pixel.fg_color;
-                    self.set_fg_color(pixel.fg_color);
+                if pixel.foreground_color != foreground_color {
+                    foreground_color = pixel.foreground_color;
+                    self.set_foreground_color(pixel.foreground_color);
                  }
-                if pixel.bg_color != bg_color {
-                    bg_color = pixel.bg_color;
-                    self.set_bg_color(pixel.bg_color);
+                if pixel.background_color != background_color {
+                    background_color = pixel.background_color;
+                    self.set_background_color(pixel.background_color);
                  }
 
                 let bytes = [pixel.c as u8];
@@ -74,15 +74,15 @@ impl Display {
         assert!(self.writer.borrow_mut().flush().is_ok());
     }
 
-    pub fn set_text<S: AsRef<str>>(&mut self, text: S, x: u32, y: u32, fg_color: Color, bg_color: Color) {
+    pub fn set_text<S: AsRef<str>>(&mut self, text: S, x: u32, y: u32, foreground_color: Color, background_color: Color) {
         let row = &mut self.buffer[y as usize];
         let mut i = 0;
 
         for c in text.as_ref().chars() {
             let cell = &mut row[(x + i) as usize];
             cell.c = c;
-            cell.fg_color = fg_color;
-            cell.bg_color = bg_color;
+            cell.foreground_color = foreground_color;
+            cell.background_color = background_color;
             i += 1;
         }
     }
@@ -96,8 +96,8 @@ impl Display {
         for row in 0..self.buffer.len() {
             for col in 0..self.buffer[row].len() {
                 self.buffer[row][col].c = ' ';
-                self.buffer[row][col].fg_color = Color::Black;
-                self.buffer[row][col].bg_color = Color::Black;
+                self.buffer[row][col].foreground_color = Color::Black;
+                self.buffer[row][col].background_color = Color::Black;
             }
         }
     }
@@ -113,11 +113,11 @@ impl Display {
         assert!(self.writer.borrow_mut().write_all(text.as_bytes()).is_ok());
     }
 
-    fn set_fg_color(&self, color: Color) {
+    fn set_foreground_color(&self, color: Color) {
         self.print(&self.esc(&format!("38;5;{}m", color as i32)));
     }
 
-    fn set_bg_color(&self, color: Color) {
+    fn set_background_color(&self, color: Color) {
         self.print(&self.esc(&format!("48;5;{}m", color as i32)));
     }
 

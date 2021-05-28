@@ -150,8 +150,8 @@ impl Game {
             board: Board{
                 cells: [[None; BOARD_WIDTH as usize]; BOARD_HEIGHT as usize]
             },
-            piece_bag: piece_bag,
-            piece: piece,
+            piece_bag,
+            piece,
             hold: None,
             piece_position: Point{ x: 0, y: 0 }, 
             score: 0,
@@ -191,10 +191,10 @@ impl Game {
         // Render a ghost piece
         let x = 1 + (2 * self.piece_position.x);
         let ghost_position = self.find_dropped_position();
-        self.render_piece(display, &self.piece, Point{ x: x, y: ghost_position.y }, true);
+        self.render_piece(display, &self.piece, Point{ x, y: ghost_position.y }, true);
 
         // Render the currently falling piece
-        self.render_piece(display, &self.piece, Point{ x: x, y: self.piece_position.y }, false);
+        self.render_piece(display, &self.piece, Point{ x, y: self.piece_position.y }, false);
 
         // Render the next piece
         display.set_text("Next piece:", left_margin, 7, Color::Red, Color::Black);
@@ -358,7 +358,7 @@ impl Game {
                 self.to_clear = self.level as i32 * 10;
                 let new_speed = 500 - (self.level-1)*10;
 
-                self.speed.store(new_speed as u64, Ordering::SeqCst);
+                self.speed.store(u64::from(new_speed), Ordering::SeqCst);
             }
             self.piece = self.piece_bag.pop();
             self.switched = false;
@@ -377,7 +377,7 @@ impl Game {
         self.advance_game()
     }
 
-    fn keypress(&mut self, key: Key) {
+    fn keypress(&mut self, key: &Key) {
         if self.paused.load(Ordering::SeqCst)
         {
             match key {
@@ -390,11 +390,10 @@ impl Game {
             Key::Left => self.move_piece(-1, 0),
             Key::Right => self.move_piece(1, 0),
             Key::Down => self.advance_game(),
-            Key::Up => self.rotate_piece(Direction::Left),
+            Key::Up | Key::Char('q') => self.rotate_piece(Direction::Left),
             Key::Space => self.drop_piece(),
             Key::Hold => self.switch_hold(),
             Key::Pause => self.pause(),
-            Key::Char('q') => self.rotate_piece(Direction::Left),
             Key::Char('e') => self.rotate_piece(Direction::Right),
             _ => false,
         };
@@ -414,7 +413,7 @@ impl Game {
                     thread::sleep(dur);
                     if !p.load(Ordering::SeqCst)
                     {
-                        if let Ok(_) = tx_event.send(GameUpdate::Tick)
+                        if tx_event.send(GameUpdate::Tick).is_ok()
                         {}
                         else {break}
                     }
@@ -423,17 +422,18 @@ impl Game {
         }
 
         // Spawn a thread which listens for keyboard input
-            let tx_event = tx_event.clone();
+            let tx_event = tx_event;
             let (flag, control) = thread_control::make_pair();
 
          let input_handle = thread::spawn(move || {
                 let stdin = &mut std::io::stdin();
 
                 while flag.alive() {
-                    if let Ok(_) = match get_input(stdin) {
+                    if match get_input(stdin) {
                         Some(k) => tx_event.send(GameUpdate::KeyPress(k)),
                         None => Ok(())
-                    }{}
+                    }.is_ok(){}
+                        
                     else{break}
                 }
             });
@@ -451,14 +451,14 @@ impl Game {
                         GameUpdate::KeyPress(key) => {
                             match key {
                                 Key::Char('z') | Key::CtrlC => break,
-                                k => { self.keypress(k); }
+                                k => { self.keypress(&k); }
                             };
                         },
                         GameUpdate::Tick => { if !self.advance_game()
                                                 {break} }
                     };
                 },
-                Err(err) => panic!(err)
+                Err(err) => panic!("{}", err)
             }
         }
         control.stop();
@@ -494,14 +494,14 @@ fn get_input(stdin: &mut std::io::Stdin) -> Option<Key> {
                                 _ => None
                             }
                         },
-                        Err(msg) => panic!(format!("could not read from standard in: {}", msg))
+                        Err(msg) => panic!("could not read from standard in: {}", msg)
                     }
                 },
                 Ok(n) => Some(Key::Char(n.chars().next().unwrap())),
                 _ => None
             }
         },
-        Err(msg) => panic!(format!("could not read from standard in: {}", msg))
+        Err(msg) => panic!("could not read from standard in: {}", msg)
     }
 }
 
