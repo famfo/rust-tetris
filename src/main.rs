@@ -298,7 +298,7 @@ impl Game {
         new_piece.rotate(direction);
 
         if self.board.collision_test(&new_piece, self.piece_position) {
-            let mut new_position = self.piece_position.clone();
+            let mut new_position = self.piece_position;
             if self.piece_position.x < (BOARD_WIDTH / 2) as i32
             //wallkick left
             {
