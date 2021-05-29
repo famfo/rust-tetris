@@ -306,14 +306,13 @@ impl Game {
             } else {
                 new_position.x -= 1;
             }
-            if self.board.collision_test(&new_piece, new_position) {
-                if self.piece_position.x > (BOARD_WIDTH / 2) as i32
+            if self.board.collision_test(&new_piece, new_position)
+                && self.piece_position.x > (BOARD_WIDTH / 2) as i32
+            {
                 //wallkick right
-                {
-                    new_position.x -= 1;
-                    if self.board.collision_test(&new_piece, new_position) {
-                        return false;
-                    }
+                new_position.x -= 1;
+                if self.board.collision_test(&new_piece, new_position) {
+                    return false;
                 }
             }
 
