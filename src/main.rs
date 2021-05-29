@@ -322,7 +322,7 @@ impl Game {
 
             self.piece = new_piece;
             self.piece_position = new_position;
-            return true;
+            true
         } else {
             self.piece = new_piece;
             true
@@ -344,7 +344,7 @@ impl Game {
             self.piece = self.piece_bag.pop();
         }
         self.switched = true;
-        return self.place_new_piece();
+        self.place_new_piece()
     }
 
     ///Pauses or unpauses the game

@@ -31,9 +31,9 @@ fn load_scores(path: &Path) -> Vec<Score> {
         .open(path)
         .unwrap();
     if let Ok(scores) = serde_json::from_reader(file) {
-        return scores;
+        scores
     } else {
-        return Vec::new();
+        Vec::new()
     }
 }
 
@@ -55,7 +55,7 @@ fn ask_username() -> String {
     let mut buffer = String::new();
     std::io::stdin().read_line(&mut buffer).unwrap();
     buffer = buffer.trim().into();
-    return buffer;
+    buffer
 }
 
 pub fn manage_highscore(pscore: u32) {
