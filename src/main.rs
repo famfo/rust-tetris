@@ -61,13 +61,10 @@ impl Board {
         }
         for row in 0..BOARD_HEIGHT {
             for col in 0..BOARD_WIDTH {
-                match self.cells[row as usize][col as usize] {
-                    Some(color) => {
-                        let c = 1 + (col * 2);
-                        display.set_text(" ", c, row, color, color);
-                        display.set_text(" ", c + 1, row, color, color);
-                    }
-                    None => (),
+                if let Some(color) = self.cells[row as usize][col as usize] {
+                    let c = 1 + (col * 2);
+                    display.set_text(" ", c, row, color, color);
+                    display.set_text(" ", c + 1, row, color, color);
                 }
             }
         }
