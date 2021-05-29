@@ -84,14 +84,12 @@ impl Display {
         background_color: Color,
     ) {
         let row = &mut self.buffer[y as usize];
-        let mut i = 0;
 
-        for c in text.as_ref().chars() {
-            let cell = &mut row[(x + i) as usize];
+        for (i, c) in text.as_ref().chars().enumerate() {
+            let cell = &mut row[(x + i as u32) as usize];
             cell.c = c;
             cell.foreground_color = foreground_color;
             cell.background_color = background_color;
-            i += 1;
         }
     }
 
