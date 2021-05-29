@@ -432,15 +432,13 @@ impl Game {
             let tx_event = tx_event.clone();
             let arc = self.speed.clone();
             let p = self.paused.clone();
-            thread::spawn(move || {
-                loop {
-                    let dur = Duration::from_millis(arc.load(Ordering::SeqCst));
-                    thread::sleep(dur);
-                    if !p.load(Ordering::SeqCst) {
-                        if tx_event.send(GameUpdate::Tick).is_ok() {
-                        } else {
-                            break;
-                        }
+            thread::spawn(move || loop {
+                let dur = Duration::from_millis(arc.load(Ordering::SeqCst));
+                thread::sleep(dur);
+                if !p.load(Ordering::SeqCst) {
+                    if tx_event.send(GameUpdate::Tick).is_ok() {
+                    } else {
+                        break;
                     }
                 }
             });
