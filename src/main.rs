@@ -295,11 +295,34 @@ impl Game {
     /// without any collisions.
     fn rotate_piece(&mut self, direction: Direction) -> bool {
         let mut new_piece = self.piece.clone();
+        let mut new_position = self.piece_position;
+
         new_piece.rotate(direction);
 
-        if self.board.collision_test(&new_piece, self.piece_position) {
+        if self.board.collision_test(&new_piece, new_position) {
+            if new_position.x < (BOARD_WIDTH as i32 / 2) {
+                new_position.x += 1;
+                if new_piece.color == Color::Cyan {
+                    new_position.x += 1;
+                }
+            } else {
+                new_position.x -= 1;
+            }
+            if self.board.collision_test(&new_piece, new_position) {
+                false
+            } else {
+                self.piece = new_piece;
+                self.piece_position = new_position;
+                true
+            }
+        } else {
+            self.piece = new_piece;
+            true
+        }
+
+        /*if self.board.collision_test(&new_piece, self.piece_position) {
             let mut new_position = self.piece_position;
-            if self.piece_position.x < (BOARD_WIDTH / 2) as i32
+            if self.board.collision_test(&new_piece, new_position)
             //wallkick left
             {
                 new_position.x += 1;
@@ -322,7 +345,7 @@ impl Game {
         } else {
             self.piece = new_piece;
             true
-        }
+        }*/
     }
 
     /// Switches the current piece with the held piece
@@ -383,7 +406,7 @@ impl Game {
             if self.to_clear <= 0 {
                 self.level += 1;
                 self.to_clear = self.level as i32 * 10;
-                let new_speed = 500 - (self.level - 1) * 10;
+                let new_speed = 500 - (self.level * 2 - 1) * 10;
 
                 self.speed.store(u64::from(new_speed), Ordering::SeqCst);
             }
@@ -416,7 +439,7 @@ impl Game {
             Key::Left => self.move_piece(-1, 0),
             Key::Right => self.move_piece(1, 0),
             Key::Down => self.advance_game(),
-            Key::Up | Key::Char('q') => self.rotate_piece(Direction::Left),
+            Key::Up => self.rotate_piece(Direction::Left),
             Key::Space => self.drop_piece(),
             Key::Hold => self.switch_hold(),
             Key::Pause => self.pause(),
@@ -504,7 +527,7 @@ fn get_input(stdin: &mut std::io::Stdin) -> Option<Key> {
     match stdin.read(c) {
         Ok(_) => {
             match std::str::from_utf8(c) {
-                Ok("w") => Some(Key::Up),
+                Ok("q") => Some(Key::Up),
                 Ok("a") => Some(Key::Left),
                 Ok("s") => Some(Key::Down),
                 Ok("d") => Some(Key::Right),

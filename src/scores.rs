@@ -60,7 +60,7 @@ fn ask_username() -> String {
 
 pub fn manage_highscore(pscore: u32) {
     let mut path = home_dir().unwrap();
-    path.push(".tetris");
+    path.push(".config/tetris");
     let mut scores = load_scores(path.as_path());
     if scores.iter().any(|s| pscore > s.score) || scores.is_empty() {
         println!("Your score: {}", pscore);
@@ -79,7 +79,7 @@ pub fn manage_highscore(pscore: u32) {
 
 pub fn print_highscores() {
     let mut path = home_dir().unwrap();
-    path.push(".tetris");
+    path.push(".config/tetris");
     let scores = load_scores(path.as_path());
     print!("{}", termion::clear::BeforeCursor);
     scores
